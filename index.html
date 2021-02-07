@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Terrain Generation</title>
+
+		<style>
+			html, body {
+				height: 100vh;
+				margin: 0;
+			}
+
+			canvas {
+				width: 100vw;
+				height: 100vh;
+				margin: 0;
+				padding: 0;
+			}
+
+		</style>
+
+		<link rel="stylesheet" href="assets/dat.gui.css"/>
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
+
+		<script type="shader/x-vertex" id="vertex-shader">
+			#version 300 es
+
+			in vec3 position;
+			in vec3 colour;
+
+			uniform mat4 viewMatrix;
+			uniform mat4 projectionMatrix;
+
+			out vec3 vertexColour;
+
+			void main() {
+				gl_Position = projectionMatrix * viewMatrix * vec4(position, 1.0);
+				vertexColour = colour;
+			}
+
+
+		</script>
+
+		<script type="shader/x-fragment" id="fragment-shader">
+			#version 300 es
+
+			precision highp float;
+			in vec3 vertexColour;
+			out vec4 colour;
+
+			void main() {
+				colour = vec4(vertexColour, 1.0);
+			}
+
+		</script>
+
+		<script src="thirdparty/gl-matrix.js"></script>
+		<script src="thirdparty/dat.gui.js"></script>
+		<script src="main.js" type="module"></script>
+	</body>
+</html>

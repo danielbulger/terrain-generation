@@ -45,45 +45,20 @@ function generateVertexIndices(width, height) {
 	const indices = new Int32Array(width * height * 6);
 
 	let offset = 0;
-	for (let y = 0; y < height; ++y) {
-		for (let x = 0; x < width; ++x) {
-
-			if (x === width - 1 || y === height - 1) {
-				continue;
-			}
+	for (let y = 0; y < height - 1; ++y) {
+		for (let x = 0; x < width - 1; ++x) {
 
 			const idx = x + y * width;
-			// Top left triangle of square
+
 			indices[offset++] = (idx + width);
-			indices[offset++] = (idx);
+			indices[offset++] = idx;
 			indices[offset++] = (idx + width + 1);
-			// Bottom right triangle of square
+
 			indices[offset++] = (idx + 1);
 			indices[offset++] = (idx + 1 + width);
-			indices[offset++] = (idx);
+			indices[offset++] = idx;
 		}
 	}
-
-	/*
-	for (int y = 0; y < chunkHeight; y++)
-        for (int x = 0; x < chunkWidth; x++) {
-            int pos = x + y*chunkWidth;
-
-            if (x == chunkWidth - 1 || y == chunkHeight - 1) {
-                // Don't create indices for right or top edge
-                continue;
-            } else {
-                // Top left triangle of square
-                indices.push_back(pos + chunkWidth);
-                indices.push_back(pos);
-                indices.push_back(pos + chunkWidth + 1);
-                // Bottom right triangle of square
-                indices.push_back(pos + 1);
-                indices.push_back(pos + 1 + chunkWidth);
-                indices.push_back(pos);
-            }
-        }
-	 */
 
 	return indices;
 }
@@ -105,6 +80,11 @@ export class Terrain {
 		);
 	}
 
+	/**
+	 *
+	 * @param {Float32List} viewMatrix
+	 * @param {Float32List} projectionMatrix
+	 */
 	draw(viewMatrix, projectionMatrix) {
 		this.shader.use();
 		this.shader.setMat4("viewMatrix", viewMatrix);

@@ -17,10 +17,6 @@ export class Camera {
 
 		this.viewMatrix = glMatrix.mat4.create();
 		this.projectionMatrix = glMatrix.mat4.create();
-
-		this.lastX = 0;
-		this.lastY = 0;
-		this.firstMouse = false;
 		this.mouseInput = true;
 
 		this.updateCameraVectors();
@@ -87,7 +83,6 @@ export class Camera {
 	}
 
 	/**
-	 *
 	 * @param {MouseEvent} event
 	 */
 	processMouse(event) {

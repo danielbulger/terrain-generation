@@ -12,17 +12,24 @@ let camera = undefined;
 const config = {
 	FOV: 45,
 	zNear: 0.01,
-	zFar: 100,
+	zFar: 10000,
 	terrainWidth: 512,
 	terrainHeight: 512,
-	regenerate: makeTerrain
+	regenerate: makeTerrain,
+	noise: {
+		octaves: 7,
+		persistence: 0.5,
+		lacunarity: 2,
+		weight: 2048,
+		scale: 1
+	}
 };
 
 function makeTerrain() {
 	if (terrain != null) {
 		terrain.destroy();
 	}
-	terrain = new Terrain(gl, shader, config.terrainWidth, config.terrainHeight);
+	terrain = new Terrain(gl, shader, config.terrainWidth, config.terrainHeight, config.noise);
 }
 
 function initialiseConfig(canvas) {
@@ -41,6 +48,13 @@ function initialiseConfig(canvas) {
 
 	gui.add(config, "terrainWidth").min(0);
 	gui.add(config, "terrainHeight").min(0);
+
+	gui.add(config.noise, "octaves")
+	gui.add(config.noise, "persistence")
+	gui.add(config.noise, "lacunarity")
+	gui.add(config.noise, "weight")
+	gui.add(config.noise, "scale")
+
 	gui.add(config, "regenerate");
 }
 
@@ -60,7 +74,7 @@ function getGLContext() {
 
 /**
  *
- * @param {HTMLCanvasElement} canvas
+ * @param {HTMLElement} canvas
  */
 function resize(canvas) {
 	const {width, height} = canvas.getBoundingClientRect();
@@ -84,12 +98,9 @@ function resize(canvas) {
 	}
 }
 
-/**
- *
- */
 function render() {
 	gl.clear(gl.COLOR_BUFFER_BIT);
-	if (terrain != undefined) {
+	if (terrain !== undefined) {
 		terrain.draw(camera.getViewMatrix(), camera.getProjectionMatrix());
 	}
 	gl.finish();
@@ -101,14 +112,12 @@ function render() {
 
 function main() {
 	const canvas = getGLContext();
-	canvas.requestPointerLock();
 
 	shader = new Shader(gl, 'vertex-shader', 'fragment-shader');
-	terrain = new Terrain(gl, shader, config.terrainWidth, config.terrainHeight);
-	camera = new Camera(0.2784571349620819, 0.1224435418844223, 1.0740207433700562);
+	terrain = new Terrain(gl, shader, config.terrainWidth, config.terrainHeight, config.noise);
+	camera = new Camera(-4, 216, -96, 50, -36);
 
 	initialiseConfig(canvas);
-
 	resize(canvas);
 
 	window.addEventListener('resize', function (event) {

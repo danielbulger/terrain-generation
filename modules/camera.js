@@ -1,15 +1,15 @@
 const UP = glMatrix.vec3.fromValues(0.0, 1.0, 0.0);
 const YAW = -90;
 const PITCH = 0;
-const SPEED = 1.5;
+const SPEED = 10;
 const SENSITIVITY = 0.75;
 
 export class Camera {
 
-	constructor(x, y, z) {
+	constructor(x, y, z, yaw, pitch) {
 		this.position = glMatrix.vec3.fromValues(x, y, z);
-		this.yaw = YAW;
-		this.pitch = PITCH;
+		this.yaw = yaw || YAW;
+		this.pitch = pitch || PITCH;
 
 		this.front = glMatrix.vec3.create();
 		this.right = glMatrix.vec3.create();

@@ -26,11 +26,7 @@ export class Mesh {
 
 		// Vertex position attribute
 		gl.enableVertexAttribArray(0);
-		gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0);
-
-		// Colour attribute
-		gl.enableVertexAttribArray(1);
-		gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
+		gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 12, 0);
 
 		// Clear the currently set VAO.
 		gl.bindVertexArray(null);
@@ -42,7 +38,7 @@ export class Mesh {
 		this.gl.bindVertexArray(this.vao);
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 
-		this.gl.drawElements(this.gl.TRIANGLE_STRIP, this.indices.length, this.gl.UNSIGNED_INT, 0);
+		this.gl.drawElements(this.gl.LINES, this.indices.length, this.gl.UNSIGNED_INT, 0);
 
 		this.gl.bindVertexArray(null);
 		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);

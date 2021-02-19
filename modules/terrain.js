@@ -1,35 +1,34 @@
 import {Mesh} from './mesh.js';
+import {noise} from "./simplex.js";
 
 /**
  *
  * @param {Number} width
  * @param {Number} height
+ * @param {Object} noiseConfig
  * @returns {Float32Array}
  */
-function generateVertices(width, height) {
-	// * 6 as 3 for position & 3 for RGB colour.
-	const vertices = new Float32Array(width * height * 6);
-
-	const incrementX = 1;
-	const incrementZ = 1;
+function generateVertices(width, height, noiseConfig) {
+	// * 6 as 3 for position
+	const vertices = new Float32Array(width * height * 3);
 
 	let offset = 0;
 	for (let y = 0; y < height; ++y) {
 		for (let x = 0; x < width; ++x) {
 
-			const vertexX = -0.5 + (x * incrementX);
-			const vertexY = Math.max(Math.random(), 0.5);
-			const vertexZ = -0.5 + (y * incrementZ);
+			let noiseValue = 0;
+			let weight = noiseConfig.weight;
+			let scale = noiseConfig.scale
 
-			// Position
-			vertices[offset++] = vertexX;
-			vertices[offset++] = vertexY;
-			vertices[offset++] = vertexZ;
+			for (let i = 0; i < noiseConfig.octaves; ++i) {
+				noiseValue += (weight * noise((x / width) * scale, (y / height) * scale));
+				weight *= noiseConfig.persistence;
+				scale *= noiseConfig.lacunarity;
+			}
 
-			// UV Colour
-			vertices[offset++] = (x / width);
-			vertices[offset++] = (y / width);
-			vertices[offset++] = 0;
+			vertices[offset++] = x;
+			vertices[offset++] = noiseValue;
+			vertices[offset++] = y;
 		}
 	}
 
@@ -43,25 +42,48 @@ function generateVertices(width, height) {
  * @returns {Int32Array}
  */
 function generateVertexIndices(width, height) {
-	const numStripsRequired = height - 1;
-	const numDegensRequired = 2 * (numStripsRequired - 1);
-	const verticesPerStrip = 2 * width;
-
-	const indices = new Int32Array((verticesPerStrip * numStripsRequired) + numDegensRequired);
+	const indices = new Int32Array(width * height * 6);
 
 	let offset = 0;
-	for(let y = 0; y < height - 1; ++y) {
-		indices[offset++] = y * height;
+	for (let y = 0; y < height; ++y) {
+		for (let x = 0; x < width; ++x) {
 
-		for(let x = 0; x < width; ++x) {
-			indices[offset++] = (y * height) + x;
-			indices[offset++] = ((y + 1) * height) + x;
-		}
+			if (x === width - 1 || y === height - 1) {
+				continue;
+			}
 
-		if(y < height - 2) {
-			indices[offset++] = ((y + 1) * height) + (width - 1);
+			const idx = x + y * width;
+			// Top left triangle of square
+			indices[offset++] = (idx + width);
+			indices[offset++] = (idx);
+			indices[offset++] = (idx + width + 1);
+			// Bottom right triangle of square
+			indices[offset++] = (idx + 1);
+			indices[offset++] = (idx + 1 + width);
+			indices[offset++] = (idx);
 		}
 	}
+
+	/*
+	for (int y = 0; y < chunkHeight; y++)
+        for (int x = 0; x < chunkWidth; x++) {
+            int pos = x + y*chunkWidth;
+
+            if (x == chunkWidth - 1 || y == chunkHeight - 1) {
+                // Don't create indices for right or top edge
+                continue;
+            } else {
+                // Top left triangle of square
+                indices.push_back(pos + chunkWidth);
+                indices.push_back(pos);
+                indices.push_back(pos + chunkWidth + 1);
+                // Bottom right triangle of square
+                indices.push_back(pos + 1);
+                indices.push_back(pos + 1 + chunkWidth);
+                indices.push_back(pos);
+            }
+        }
+	 */
 
 	return indices;
 }
@@ -75,10 +97,10 @@ export class Terrain {
 	 * @param {Number} width
 	 * @param {Number} height
 	 */
-	constructor(gl, shader, width, height) {
+	constructor(gl, shader, width, height, noiseConfig) {
 		this.shader = shader;
 		this.mesh = new Mesh(gl,
-			generateVertices(width, height),
+			generateVertices(width, height, noiseConfig),
 			generateVertexIndices(width, height)
 		);
 	}

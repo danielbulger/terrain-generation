@@ -33,4 +33,5 @@ export function normalise(v0) {
 			return currentValue / len;
 		});
 	}
+	return len;
 }

@@ -1,5 +1,5 @@
 import * as Random from './random.js';
-// As described in www.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
+
 
 /**
  * @type {number[][]}
@@ -40,6 +40,7 @@ function dot(g, x, y) {
 }
 
 /**
+ * As described in www.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
  * @param {number} x
  * @param {number} y
  * @returns {number}

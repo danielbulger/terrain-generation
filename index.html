@@ -23,12 +23,16 @@
 			#version 300 es
 
 			in vec3 position;
+			in vec3 normal;
 
 			uniform mat4 viewMatrix;
 			uniform mat4 projectionMatrix;
 
+			out vec3 vertexNormal;
+
 			void main() {
 				gl_Position = projectionMatrix * viewMatrix * vec4(position, 1.0);
+				vertexNormal = normal;
 			}
 		</script>
 
@@ -36,10 +40,22 @@
 			#version 300 es
 
 			precision highp float;
+
+			in vec3 vertexNormal;
 			out vec4 colour;
 
+			uniform float grassBlendAmount;
+			uniform float grassSlopeThreshold;
+
+			const vec4 GRASS_COLOUR = vec4(0.0, 1.0, 0.0, 1.0);
+			const vec4 GROUND_COLOUR = vec4(0.5922, 0.4863, 0.3255, 1.0);
+
 			void main() {
-				colour = vec4(1.0, 1.0, 1.0, 1.0);
+				float slope = 1.0 - vertexNormal.y;
+				float blendHeight = grassSlopeThreshold * (1.0 - grassBlendAmount);
+				float grassWeight = 1.0 - clamp((slope - blendHeight) / (grassSlopeThreshold - blendHeight), 0.0, 1.0);
+
+				colour = GRASS_COLOUR * grassWeight + GROUND_COLOUR * (1.0 - grassWeight);
 			}
 		</script>
 

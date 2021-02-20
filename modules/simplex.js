@@ -1,3 +1,4 @@
+import * as Random from './random.js';
 // As described in www.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
 
 /**
@@ -14,7 +15,7 @@ const grad3 = [
  */
 const p = new Array(256);
 for (let i = 0; i < p.length; ++i) {
-	p[i] = Math.floor(Math.random() * 256);
+	p[i] = Random.nextInt(p.length);
 }
 
 /**

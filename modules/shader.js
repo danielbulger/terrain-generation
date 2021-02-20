@@ -92,10 +92,10 @@ export class Shader {
 
 	/**
 	 * @param {string} name
-	 * @param {Float32List} value
+	 * @param {number} value
 	 */
 	setFloat(name, value) {
-		this.gl.uniform1fv(this.getLocation(name), value);
+		this.gl.uniform1fv(this.getLocation(name), new Float32Array([value]));
 	}
 
 	/**

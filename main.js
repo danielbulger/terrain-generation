@@ -1,6 +1,8 @@
 import {Shader} from "./modules/shader.js";
 import {Terrain} from "./modules/terrain.js";
 import {Camera} from "./modules/camera.js";
+import {generateHeightMap} from "./modules/heightMap.js";
+import * as Erosion from "./modules/erosion.js";
 
 const gui = new dat.GUI();
 
@@ -15,45 +17,87 @@ const config = {
 	zFar: 10000,
 	terrainWidth: 512,
 	terrainHeight: 512,
-	regenerate: makeTerrain,
+	rendering: {
+		grassSlopeThreshold: 0.5,
+		grassBlendAmount: 0.5
+	},
 	noise: {
 		octaves: 7,
 		persistence: 0.5,
 		lacunarity: 2,
 		weight: 2048,
 		scale: 1
-	}
+	},
+	erosion: {
+		iterations: 1,
+		capacity: 2,
+		radius: 3,
+		minSlope: 0.05,
+		inertia: 0.05,
+		erodeSpeed: 0.3,
+		depositSpeed: 0.3,
+		gravity: 4,
+		maxLifetime: 30,
+		initialVolume: 1,
+		initialVelocity: 1,
+		evaporateSpeed: 0.01
+	},
+
+	regenerate: makeTerrain
 };
 
 function makeTerrain() {
 	if (terrain != null) {
 		terrain.destroy();
 	}
-	terrain = new Terrain(gl, shader, config.terrainWidth, config.terrainHeight, config.noise);
+	terrain = new Terrain(
+		gl,
+		shader,
+		config.terrainWidth,
+		config.terrainHeight,
+		makeHeightMap()
+	);
+}
+
+function makeHeightMap() {
+	const heightMap = generateHeightMap(config.terrainWidth, config.terrainHeight, config.noise);
+	Erosion.simulate(config.erosion.iterations, heightMap, config.terrainWidth, config.terrainHeight, config.erosion);
+	return heightMap;
 }
 
 function initialiseConfig(canvas) {
 
-	gui.add(config, "FOV").min(0).max(120).onChange(function (newValue) {
-		resize(canvas)
-	});
-
-	gui.add(config, "zNear").min(0).onChange(function (newValue) {
-		resize(canvas)
-	});
-
-	gui.add(config, "zFar").min(0).onChange(function (newValue) {
-		resize(canvas)
-	});
-
 	gui.add(config, "terrainWidth").min(0);
 	gui.add(config, "terrainHeight").min(0);
 
-	gui.add(config.noise, "octaves")
-	gui.add(config.noise, "persistence")
-	gui.add(config.noise, "lacunarity")
-	gui.add(config.noise, "weight")
-	gui.add(config.noise, "scale")
+	const camera = gui.addFolder('camera');
+
+	camera.add(config, "FOV").min(0).max(120).onChange(function (newValue) {
+		resize(canvas)
+	});
+
+	camera.add(config, "zNear").min(0).onChange(function (newValue) {
+		resize(canvas)
+	});
+
+	camera.add(config, "zFar").min(0).onChange(function (newValue) {
+		resize(canvas)
+	});
+
+	const rendering = gui.addFolder('rendering');
+	for(let key in config.rendering) {
+		rendering.add(config.rendering, key);
+	}
+
+	const noise = gui.addFolder("noise");
+	for(let key in config.noise) {
+		noise.add(config.noise, key);
+	}
+
+	const droplet = gui.addFolder("droplet");
+	for(let key in config.erosion) {
+		droplet.add(config.erosion, key);
+	}
 
 	gui.add(config, "regenerate");
 }
@@ -101,7 +145,11 @@ function resize(canvas) {
 function render() {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	if (terrain !== undefined) {
-		terrain.draw(camera.getViewMatrix(), camera.getProjectionMatrix());
+		terrain.draw(
+			camera.getViewMatrix(),
+			camera.getProjectionMatrix(),
+			config.rendering
+		);
 	}
 	gl.finish();
 
@@ -114,9 +162,9 @@ function main() {
 	const canvas = getGLContext();
 
 	shader = new Shader(gl, 'vertex-shader', 'fragment-shader');
-	terrain = new Terrain(gl, shader, config.terrainWidth, config.terrainHeight, config.noise);
 	camera = new Camera(-4, 216, -96, 50, -36);
 
+	makeTerrain();
 	initialiseConfig(canvas);
 	resize(canvas);
 
